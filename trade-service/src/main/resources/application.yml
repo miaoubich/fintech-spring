@@ -1,0 +1,43 @@
+micronaut:
+  application:
+    name: trade-service
+  server:
+    port: 8081
+
+consule:
+  client:
+    defaultZone: http://localhost:8500
+  registration:
+    enable: true
+
+datasources:
+  default:
+    url: jdbc:postgresql://localhost:5432/trade-service
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: password
+    schema-generate: NONE
+
+jpa:
+  default:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: validate
+
+kafka:
+  bootstrap:
+    servers: localhost:9092
+  producers:
+    default:
+      acks: all
+      retries: 3
+      enable-idempotence: true
+
+app:
+  outbox:
+    poll-interval: 5s
+    initial-delay: 10s
+  kafka:
+    topics:
+      trades: trade-events

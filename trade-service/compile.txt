@@ -1,0 +1,40 @@
+[INFO] Scanning for projects...
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for com.miaoubich:trade-service:jar:0.1
+[WARNING] 'dependencyManagement.dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.vladsch.flexmark:flexmark-html2md-converter:jar -> version ${html2md.converter.version} vs ${flexmark.version} @ io.micronaut.platform:micronaut-platform:4.10.17, C:\Users\miaou\.m2\repository\io\micronaut\platform\micronaut-platform\4.10.17\micronaut-platform-4.10.17.pom, line 3132, column 19
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+[INFO] 
+[INFO] --------------------< com.miaoubich:trade-service >---------------------
+[INFO] Building trade-service 0.1
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.2.0:clean (default-clean) @ trade-service ---
+[INFO] Deleting c:\Users\miaou\workspace-bitpanda\fintech\trade-service\target
+[INFO] 
+[INFO] --- mn:4.11.6:generate-import-factory (default-generate-import-factory) @ trade-service ---
+[INFO] 
+[INFO] --- mn:4.11.6:generate-openapi-generic (default-generate-openapi-generic) @ trade-service ---
+[INFO] 
+[INFO] --- mn:4.11.6:generate-openapi-client (default-generate-openapi-client) @ trade-service ---
+[INFO] 
+[INFO] --- mn:4.11.6:generate-openapi-server (default-generate-openapi-server) @ trade-service ---
+[INFO] 
+[INFO] --- mn:4.11.6:generate-jsonschema (default-generate-jsonschema) @ trade-service ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ trade-service ---
+[INFO] Copying 6 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ trade-service ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 12 source files with javac [debug parameters release 25] to target\classes
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  6.992 s
+[INFO] Finished at: 2026-08-16T18:20:34+02:00
+[INFO] ------------------------------------------------------------------------
