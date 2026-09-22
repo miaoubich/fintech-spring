@@ -1,12 +1,10 @@
 package com.miaoubich.dto;
 
-import com.miaoubich.model.Trade;
-import io.micronaut.serde.annotation.Serdeable;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 
-@Serdeable
+import com.miaoubich.model.Trade;
+
 public record TradeResponse(
         String tradeId,
         String userId,

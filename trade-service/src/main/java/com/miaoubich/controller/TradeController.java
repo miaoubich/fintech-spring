@@ -3,19 +3,21 @@ package com.miaoubich.controller;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.miaoubich.dto.TradeEvent;
 import com.miaoubich.dto.TradeResponse;
 import com.miaoubich.service.TradeService;
 
-import io.micronaut.http.HttpResponse;
-import io.micronaut.http.annotation.Body;
-import io.micronaut.http.annotation.Controller;
-import io.micronaut.http.annotation.Get;
-import io.micronaut.http.annotation.Patch;
-import io.micronaut.http.annotation.Post;
-import io.micronaut.http.annotation.QueryValue;
-
-@Controller("/trades")
+@RestController
+@RequestMapping("/trades")
 public class TradeController {
 
     private final TradeService tradeService;
@@ -24,25 +26,26 @@ public class TradeController {
         this.tradeService = tradeService;
     }
 
-    @Post
-    public void createTrade(@Body TradeEvent event) {
+    @PostMapping
+    public ResponseEntity<Void> createTrade(@RequestBody TradeEvent event) {
         tradeService.pendingTrade(event);
+        return ResponseEntity.ok().build();
     }
     
-    @Get
-    public List<TradeResponse> getTrades(@QueryValue Optional<String> userId) {
+    @GetMapping
+    public List<TradeResponse> getTrades(@RequestParam Optional<String> userId) {
     	return userId
                 .map(tradeService::getTradesByUserId)
                 .orElseGet(tradeService::getAllTrades);
 	}
     
-    @Patch("/{tradeId}/execute")
-    public HttpResponse<Void> executeTrade(String tradeId) {
+    @PatchMapping("/{tradeId}/execute")
+    public ResponseEntity<Void> executeTrade(String tradeId) {
         tradeService.executeTrade(tradeId);
-        return HttpResponse.noContent();
+        return ResponseEntity.noContent().build();
     }
     
-    @Get("/health")
+    @GetMapping("/health")
     public String healthCheck() {
 		return "Trade Service is up and running!";
 	}

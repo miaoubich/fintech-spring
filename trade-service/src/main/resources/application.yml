@@ -50,8 +50,8 @@ management:
        include: health,info
 app:
   outbox:
-    poll-interval: 5s
-    initial-delay: 10s
+    poll-interval: 5000
+    initial-delay: 10000
   kafka:
     topics:
       trades: trade-events

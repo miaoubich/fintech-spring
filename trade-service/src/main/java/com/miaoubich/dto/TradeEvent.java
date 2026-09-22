@@ -3,9 +3,6 @@ package com.miaoubich.dto;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-import io.micronaut.serde.annotation.Serdeable;
-
-@Serdeable
 public record TradeEvent(
 
 		String tradeId, 
@@ -31,7 +28,15 @@ public record TradeEvent(
 
 	public TradeEvent withStatus(String newStatus, Instant newTimestamp) {
     	return new TradeEvent(
-    			tradeId, userId, symbol, side, quantity, price, asset,
-    			newStatus, newTimestamp);
+    			tradeId, 
+    			userId, 
+    			symbol, 
+    			side, 
+    			quantity, 
+    			price, 
+    			asset,
+    			newStatus, 
+    			newTimestamp
+    		);
     }
 }

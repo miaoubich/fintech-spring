@@ -26,6 +26,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.miaoubich.dto.TradeEvent;
 import com.miaoubich.dto.TradeResponse;
 import com.miaoubich.model.OutboxEvent;
@@ -33,8 +35,6 @@ import com.miaoubich.model.Trade;
 import com.miaoubich.repository.OutboxEventRepository;
 import com.miaoubich.repository.TradeRepository;
 import com.miaoubich.service.TradeService;
-
-import io.micronaut.serde.ObjectMapper;
 
 /*
  * Because unit testing the Service layer does not require starting 
@@ -50,8 +50,11 @@ public class TradeServiceTest {
 	private OutboxEventRepository outboxEventRepository;
 	@Mock
 	private TradeRepository tradeRepository;
+	
+	 // Concrete Jackson ObjectMapper
 	@Spy
-	private ObjectMapper jsonMapper = ObjectMapper.getDefault();
+	private ObjectMapper jsonMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
 	@InjectMocks
 	private TradeService tradeService;
 
@@ -138,7 +141,7 @@ public class TradeServiceTest {
 		
 		// Assert trade status was updated from PENDING to EXECUTED
 		ArgumentCaptor<Trade> tradeCaptor = ArgumentCaptor.forClass(Trade.class);
-		verify(tradeRepository).update(tradeCaptor.capture());
+		verify(tradeRepository).save(tradeCaptor.capture());
 		LOG.info("tradeCaptor.getValue().getStatus() -> {}", tradeCaptor.getValue().getStatus());
 		assertEquals("EXECUTED", tradeCaptor.getValue().getStatus());
 		

@@ -6,7 +6,10 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.miaoubich.dto.TradeEvent;
 import com.miaoubich.dto.TradeResponse;
 import com.miaoubich.model.OutboxEvent;
@@ -14,12 +17,9 @@ import com.miaoubich.model.Trade;
 import com.miaoubich.repository.OutboxEventRepository;
 import com.miaoubich.repository.TradeRepository;
 
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.serde.ObjectMapper;
-import jakarta.inject.Singleton;
 import jakarta.transaction.Transactional;
 
-@Singleton
+@Service
 public class TradeService {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TradeService.class);
@@ -105,7 +105,8 @@ public class TradeService {
 	    }
 
 	    trade.setStatus(TradeEvent.STATUS_EXECUTED);
-	    tradeRepository.update(trade);
+	    trade.setUpdatedAt(Instant.now());
+	    tradeRepository.save(trade);
 
 	    TradeEvent executedEvent = new TradeEvent(
 	            trade.getTradeId(),
@@ -115,9 +116,10 @@ public class TradeService {
 	            trade.getQuantity(),
 	            trade.getPrice(),
 	            trade.getAsset(), // asset, if Trade entity does not have it
-	            TradeEvent.EVENT_TYPE_EXECUTED,
-	            Instant.now()
+	            trade.getStatus(),
+	            trade.getUpdatedAt()
 	    );
+	    executedEvent.withStatus(TradeEvent.STATUS_EXECUTED, Instant.now());
 
 	    String payload = serializePayload(executedEvent);
 

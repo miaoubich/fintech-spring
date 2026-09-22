@@ -1,10 +1,14 @@
 package com.miaoubich;
 
-import io.micronaut.runtime.Micronaut;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
+@SpringBootApplication
+@EnableScheduling
 public class TradeApplication {
 
     public static void main(String[] args) {
-        Micronaut.run(TradeApplication.class, args);
+        SpringApplication.run(TradeApplication.class, args);
     }
 }
