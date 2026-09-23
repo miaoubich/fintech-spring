@@ -31,7 +31,7 @@ import com.miaoubich.dto.TradeResponse;
 import com.miaoubich.service.TradeService;
 
 @WebMvcTest(TradeController.class)
-class TradeControllerTest {
+class TradeControllerTests {
 
     @Autowired
     private MockMvc mockMvc;
@@ -39,7 +39,8 @@ class TradeControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockitoBean // Spring Boot 3.4+ standard annotation
+    // Spring Boot 3.4+ standard annotation
+    @MockitoBean 
     private TradeService tradeService;
 
     @Test
@@ -47,7 +48,7 @@ class TradeControllerTest {
     void healthCheckTest() throws Exception {
         mockMvc.perform(get("/trades/health"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Trade service is up and running!"));
+                .andExpect(content().string("Trade Service is up and running!"));
     }
 
     @Test
@@ -58,28 +59,32 @@ class TradeControllerTest {
                 new BigDecimal("5"), new BigDecimal("65000.00"),
                 "Crypto", "PENDING", Instant.now()
         );
-
+        String eventString = objectMapper.writeValueAsString(event);
+        
         doNothing().when(tradeService).pendingTrade(any(TradeEvent.class));
 
-        mockMvc.perform(post("/trades")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(event)))
+		mockMvc.perform(post("/trades").contentType(MediaType.APPLICATION_JSON).content(eventString))
                 .andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("PATCH /trades/{tradeId}/execute should return 204 No Content")
     void executeTradeTest() throws Exception {
+    	String tradeId = "tradeId-1";
+    	
         doNothing().when(tradeService).executeTrade("tradeId-1");
 
-        mockMvc.perform(patch("/trades/tradeId-1/execute"))
+        mockMvc.perform(patch("/trades/" + tradeId + "/execute"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     @DisplayName("GET /trades?userId=... should return filtered list")
     void getTradesByUserIdTest() throws Exception {
-        TradeResponse response = new TradeResponse(
+    	String userId = "userId-1";
+    	String tradeId = "tradeId-1";
+    	
+        TradeResponse response1 = new TradeResponse(
                 "tradeId-1", 
                 "userId-1", 
                 "BTC-EUR", 
@@ -91,13 +96,25 @@ class TradeControllerTest {
                 Instant.now(), 
                 null
               );
+        TradeResponse response2 = new TradeResponse(
+                "tradeId-2", 
+                "userId-2", 
+                "USD-EUR", 
+                "SELL",
+                new BigDecimal("5"), 
+                new BigDecimal("1.15"),
+                "Exchange", 
+                "PENDING", 
+                Instant.now(), 
+                null
+              );
         
 
-        when(tradeService.getTradesByUserId(eq("userId-1"))).thenReturn(List.of(response));
+        when(tradeService.getTradesByUserId(eq(userId))).thenReturn(List.of(response1, response2));
 
-        mockMvc.perform(get("/trades").param("userId", "userId-1"))
+        mockMvc.perform(get("/trades").param("userId", userId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].tradeId").value("tradeId-1"));
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].tradeId").value(tradeId));
     }
 }
