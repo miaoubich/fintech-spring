@@ -38,7 +38,7 @@ import com.miaoubich.service.TradeService;
 
 /*
  * Because unit testing the Service layer does not require starting 
- *  the Micronaut HTTP server or opening real Database connection,
+ *  the Spring Boot context or opening real Database connection,
  *  we use @ExtendWith(MockitoExtension.class) for ultra-fast isolated
  *  execution
  * */
@@ -125,6 +125,8 @@ public class TradeServiceTest {
 
 		OutboxEvent savedOutbox = outboxCaptor.getValue();
 		assertNotNull(savedOutbox.getPayload()); // Ensure payload (Trade) is not null
+		assertEquals(TradeEvent.EVENT_TYPE_CREATED, savedOutbox.getEventType());
+		LOG.info("savedOutbox.getPayload() -> {}", savedOutbox.getPayload());
 		
 	}
 	
@@ -143,7 +145,7 @@ public class TradeServiceTest {
 		ArgumentCaptor<Trade> tradeCaptor = ArgumentCaptor.forClass(Trade.class);
 		verify(tradeRepository).save(tradeCaptor.capture());
 		LOG.info("tradeCaptor.getValue().getStatus() -> {}", tradeCaptor.getValue().getStatus());
-		assertEquals("EXECUTED", tradeCaptor.getValue().getStatus());
+		assertEquals(TradeEvent.STATUS_EXECUTED, tradeCaptor.getValue().getStatus());
 		
 		// Assert Outbox event was created
 		ArgumentCaptor<OutboxEvent> outboxCaptor = ArgumentCaptor.forClass(OutboxEvent.class);
@@ -152,7 +154,7 @@ public class TradeServiceTest {
 		OutboxEvent savedOutbox = outboxCaptor.getValue();
 		assertNotNull(savedOutbox);
 		assertEquals(tradeId, savedOutbox.getAggregateId());
-		assertEquals("TRADE_EXECUTED", savedOutbox.getEventType());
+		assertEquals(TradeEvent.EVENT_TYPE_EXECUTED, savedOutbox.getEventType());
 		
 	}
 	
@@ -162,7 +164,7 @@ public class TradeServiceTest {
 	@Test
 	@DisplayName("Should throw Exception if trade is already EXECUTED")
 	void shouldThrowExceptionWhenTradeAlreadyExecutedTest() {
-		sampleTrade.setStatus("EXECUTED");
+		sampleTrade.setStatus(TradeEvent.STATUS_EXECUTED);
 		when(tradeRepository.findByTradeId("tradeId-1")).thenReturn(Optional.of(sampleTrade));
 		
 		assertThrows(IllegalStateException.class, () -> tradeService.executeTrade("tradeId-1"));
@@ -203,7 +205,7 @@ public class TradeServiceTest {
 	 * Query Method get Trade by userid
 	 * */
 	@Test
-	@DisplayName("getTradeByUserId should return trades filtered by usinrId")
+	@DisplayName("getTradeByUserId should return trades filtered by userId")
 	void returnTradesByUserId() {
 		String userId = "userId-1";
 		when(tradeRepository.findByUserIdOrderByCreatedAtDesc(userId)).thenReturn(List.of(sampleTrade));
