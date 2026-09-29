@@ -3,15 +3,14 @@ package com.miaoubich.ledger.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.stereotype.Service;
+
 import com.miaoubich.ledger.dto.AccountBalanceResponse;
 import com.miaoubich.ledger.dto.LedgerEntryResponse;
-import com.miaoubich.ledger.dto.TradeEvent;
 import com.miaoubich.ledger.repository.AccountBalanceRepository;
 import com.miaoubich.ledger.repository.LedgerEntryRepository;
 
-import jakarta.inject.Singleton;
-
-@Singleton
+@Service
 public class LedgerService {
 
 	private final AccountBalanceRepository accountBalanceRepository;

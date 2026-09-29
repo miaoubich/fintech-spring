@@ -1,10 +1,8 @@
 package com.miaoubich.ledger.dto;
 
-import io.micronaut.serde.annotation.Serdeable;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-@Serdeable
 public record LedgerEntryResponse(
         String tradeId,
         String userId,

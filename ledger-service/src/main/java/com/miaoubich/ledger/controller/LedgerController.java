@@ -2,15 +2,18 @@ package com.miaoubich.ledger.controller;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.miaoubich.ledger.dto.AccountBalanceResponse;
 import com.miaoubich.ledger.dto.LedgerEntryResponse;
 import com.miaoubich.ledger.service.LedgerService;
 
-import io.micronaut.http.HttpResponse;
-import io.micronaut.http.annotation.Controller;
-import io.micronaut.http.annotation.Get;
-
-@Controller("/ledger")
+@RestController
+@RequestMapping("/ledger")
 public class LedgerController {
 
     private final LedgerService ledgerService;
@@ -19,27 +22,32 @@ public class LedgerController {
         this.ledgerService = ledgerService;
     }
 
-    @Get("/balance/{userId}/{symbol}")
-    public HttpResponse<AccountBalanceResponse> getBalance(String userId, String symbol) {
+    @GetMapping("/balance/{userId}/{symbol}")
+    public ResponseEntity<AccountBalanceResponse> getBalance(
+    									@PathVariable String userId, 
+    									@PathVariable String symbol) {
         return ledgerService.getBalance(userId, symbol)
-                .map(HttpResponse::ok)
-                .orElse(HttpResponse.notFound());
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @Get("/entries/{userId}")
-    public List<LedgerEntryResponse> getEntries(String userId) {
-        return ledgerService.findLedgerEntriesByUserId(userId);
+    @GetMapping("/entries/{userId}")
+    public ResponseEntity<List<LedgerEntryResponse>> getEntries(String userId) {
+    	List<LedgerEntryResponse> response = ledgerService
+    											.findLedgerEntriesByUserId(userId);
+    	return ResponseEntity.ok(response);
     }
 
-    @Get("/portfolio/{userId}")
-    public List<AccountBalanceResponse> getPortfolio(String userId) {
-        return ledgerService.findAll()
-                .stream()
-                .filter(b -> b.userId().equals(userId))
-                .toList();
+    @GetMapping("/portfolio/{userId}")
+    public ResponseEntity<List<AccountBalanceResponse>> getPortfolio(String userId) {
+    	List<AccountBalanceResponse> response = ledgerService.findAll()
+										                .stream()
+										                .filter(b -> b.userId().equals(userId))
+										                .toList();
+    	return ResponseEntity.ok(response);
     }
 
-    @Get("/health")
+    @GetMapping("/health")
     public String health() {
         return "OK";
     }

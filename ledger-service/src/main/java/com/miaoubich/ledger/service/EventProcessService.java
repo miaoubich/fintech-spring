@@ -1,5 +1,11 @@
 package com.miaoubich.ledger.service;
 
+import java.math.BigDecimal;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
 import com.miaoubich.ledger.dto.TradeEvent;
 import com.miaoubich.ledger.model.AccountBalance;
 import com.miaoubich.ledger.model.LedgerEntry;
@@ -7,14 +13,10 @@ import com.miaoubich.ledger.model.ProcessedTrade;
 import com.miaoubich.ledger.repository.AccountBalanceRepository;
 import com.miaoubich.ledger.repository.LedgerEntryRepository;
 import com.miaoubich.ledger.repository.ProcessedTradeRepository;
-import jakarta.inject.Singleton;
+
 import jakarta.transaction.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-
-@Singleton
+@Service
 public class EventProcessService {
 
     private static final Logger LOG = LoggerFactory.getLogger(EventProcessService.class);
@@ -23,7 +25,6 @@ public class EventProcessService {
     private final LedgerEntryRepository ledgerEntryRepository;
     private final AccountBalanceRepository accountBalanceRepository;
     
-    private static final String EXECUTED = "TRADE_EXECUTED";
     private static final String BUY = "BUY";
     private static final String SELL = "SELL";
 
@@ -44,7 +45,7 @@ public class EventProcessService {
         validate(event);
 
         // Step 2: Only process EXECUTED trades
-        if (!EXECUTED.equalsIgnoreCase(event.status())) {
+        if (!TradeEvent.EVENT_TYPE_EXECUTED.equalsIgnoreCase(event.status())) {
             LOG.info(
                     "Ignoring non-executed trade. tradeId={}, status={}",
                     event.tradeId(),
