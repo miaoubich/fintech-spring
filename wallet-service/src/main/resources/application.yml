@@ -1,0 +1,58 @@
+server:
+  port: 8083 
+spring:
+  application:
+    name: wallet-service
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    # Keep the wallet db in strict sync with Kafka
+    consumer:
+      group-id: wallet-service-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer  
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: com.miaoubich.*
+        spring.json.value.default.type: com.miaoubich.wallet.dto.TradeEvent
+        spring.json.use.type.headers: false
+
+app:
+  kafka:
+    topics:
+      trades: trade-events	
+
+  datasources:
+    default:
+      url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/wallet-service}
+      driverClassName: org.postgresql.Driver
+      username: ${DATASOURCE_USERNAME:postgres}
+      password: ${DATASOURCE_PASSWORD:password}
+      schema-generate: NONE
+      dialect: POSTGRES
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        show_sql: true		
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
