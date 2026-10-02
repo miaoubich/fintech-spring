@@ -1,9 +1,7 @@
 package com.miaoubich.wallet.dto;
 
-import io.micronaut.serde.annotation.Serdeable;
 import java.math.BigDecimal;
 
-@Serdeable
 public record WalletSummaryResponse(
 		
     String userId,

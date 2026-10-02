@@ -1,10 +1,9 @@
 package com.miaoubich.wallet.dto;
 
-import io.micronaut.serde.annotation.Serdeable;
 import java.math.BigDecimal;
 import java.util.List;
 
-@Serdeable
+
 public record WalletResponse(
 		
     String userId,
@@ -14,13 +13,11 @@ public record WalletResponse(
     List<CashBalance> cashBalances,
     List<Position> positions
 ) {
-    @Serdeable
     public record CashBalance(
         String currency,
         BigDecimal amount
     ) {}
 
-    @Serdeable
     public record Position(
         String symbol,
         String assetClass,

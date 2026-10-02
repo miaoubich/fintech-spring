@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.miaoubich.wallet.dto.AssetBalanceResponse;
 import com.miaoubich.wallet.dto.WalletResponse;
@@ -14,9 +16,7 @@ import com.miaoubich.wallet.entity.Position;
 import com.miaoubich.wallet.repository.CashBalanceRepository;
 import com.miaoubich.wallet.repository.PositionRepository;
 
-import jakarta.inject.Singleton;
-
-@Singleton
+@Service
 public class WalletService {
 	
 	private final Logger LOG = LoggerFactory.getLogger(WalletService.class);
@@ -29,6 +29,7 @@ public class WalletService {
 		this.positionRepository = positionRepository;
 	}
 	
+	@Transactional(readOnly = true)
 	public WalletResponse getWallet(String userId) {
 		// Get cash balance
 		List<CashBalance> cashBalances = cashBalanceRepository.findByUserId(userId);
@@ -76,6 +77,7 @@ public class WalletService {
 				);
 	}
 	
+	@Transactional(readOnly = true)
 	public AssetBalanceResponse getAssetBalance(String userId, String symbol) {
 		Position position = positionRepository.findByUserIdAndSymbol(userId, symbol)
 								.orElseThrow(() -> new RuntimeException("Position not found!"));
@@ -91,6 +93,7 @@ public class WalletService {
 				);
 	}
 
+	@Transactional(readOnly = true)
 	public WalletSummaryResponse getWalletSummary(String userId) {
 		// Get cash balance
 		List<CashBalance> cashBalances = cashBalanceRepository.findByUserId(userId);

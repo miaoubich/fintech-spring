@@ -2,21 +2,16 @@ package com.miaoubich.wallet.kafka;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Component;
 
 import com.miaoubich.wallet.dto.TradeEvent;
 import com.miaoubich.wallet.service.WalletProjectionService;
 
-import io.micronaut.configuration.kafka.annotation.KafkaKey;
-import io.micronaut.configuration.kafka.annotation.KafkaListener;
-import io.micronaut.configuration.kafka.annotation.OffsetReset;
-import io.micronaut.configuration.kafka.annotation.OffsetStrategy;
-import io.micronaut.configuration.kafka.annotation.Topic;
-
-@KafkaListener(
-        groupId = "${app.kafka.consumer.group-id:wallet-service-group}",
-        offsetReset = OffsetReset.EARLIEST,
-        offsetStrategy = OffsetStrategy.SYNC
-)
+@Component
 public class TradeEventConsumer {
 
     private static final Logger LOG = LoggerFactory.getLogger(TradeEventConsumer.class);
@@ -27,8 +22,12 @@ public class TradeEventConsumer {
         this.walletProjectionService = walletProjectionService;
     }
 
-    @Topic("${app.kafka.topics.trades:trade-events}")
-    public void receive(@KafkaKey String key, TradeEvent event) {
+    @KafkaListener(
+    		topics = "${app.kafka.topics.trades:trade-events}",
+            groupId = "${app.kafka.consumer.group-id:wallet-service-group}"
+    )
+    public void receive(@Header(KafkaHeaders.RECEIVED_KEY) String key, 
+    					@Payload TradeEvent event) {
         LOG.info("Received trade event. key={}, tradeId={}, userId={}, status={}",
                 key, event.tradeId(), event.userId(), event.status());
 

@@ -1,26 +1,26 @@
 package com.miaoubich.wallet.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
 import com.miaoubich.wallet.dto.TradeEvent;
 import com.miaoubich.wallet.entity.CashBalance;
 import com.miaoubich.wallet.entity.Position;
 import com.miaoubich.wallet.repository.CashBalanceRepository;
 import com.miaoubich.wallet.repository.PositionRepository;
-import jakarta.inject.Singleton;
+
 import jakarta.transaction.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
-@Singleton
+@Service
 public class WalletProjectionService {
 
     private static final Logger LOG = LoggerFactory.getLogger(WalletProjectionService.class);
     private static final BigDecimal INITIAL_DEMO_BALANCE = new BigDecimal("100000.00");
-    private static final String EXECUTED = "TRADE_EXECUTED";
-    private static final String BUY = "BUY";
-    private static final String SELL = "SELL";
+//    private static final String EXECUTED = "TRADE_EXECUTED";
 
     private final CashBalanceRepository cashBalanceRepository;
     private final PositionRepository positionRepository;
@@ -34,7 +34,7 @@ public class WalletProjectionService {
     @Transactional
     public void processTradeEvent(TradeEvent event) {
         // We only project EXECUTED trades to the wallet view
-        if (!EXECUTED.equalsIgnoreCase(event.status())) {
+        if (TradeEvent.EVENT_TYPE_EXECUTED.equalsIgnoreCase(event.status())) {
             LOG.debug("Skipping non-executed trade: tradeId={}, status={}", event.tradeId(), event.status());
             return;
         }
@@ -44,7 +44,7 @@ public class WalletProjectionService {
         String side = event.side();
         BigDecimal quantity = event.quantity();
         BigDecimal price = event.price();
-        String assetClass = event.asset();
+        String asset = event.asset();
 
         // Extract currency & asset symbol from pair (e.g. "BTC-EUR" -> asset: "BTC", currency: "EUR")
         String currency = symbol.contains("-") ? symbol.split("-")[1] : "EUR";
@@ -56,7 +56,7 @@ public class WalletProjectionService {
         updateCashBalance(userId, currency, side, tradeCost);
 
         // 2. Update Asset Positions
-        updateAssetPosition(userId, assetSymbol, assetClass, side, quantity, price);
+        updateAssetPosition(userId, assetSymbol, asset, side, quantity, price);
     }
 
     private void updateCashBalance(String userId, String currency, String side, BigDecimal tradeCost) {
@@ -67,15 +67,11 @@ public class WalletProjectionService {
                 });
 
         BigDecimal currentAmount = cashBalance.getAmount();
-        BigDecimal newAmount = BUY.equalsIgnoreCase(side)? currentAmount.subtract(tradeCost): currentAmount.add(tradeCost);
+        BigDecimal newAmount = TradeEvent.BUY.equalsIgnoreCase(side)? currentAmount.subtract(tradeCost): currentAmount.add(tradeCost);
 
         cashBalance.setAmount(newAmount);
 
-        if (cashBalance.getId() == null) {
-            cashBalanceRepository.save(cashBalance);
-        } else {
-            cashBalanceRepository.update(cashBalance);
-        }
+        cashBalanceRepository.save(cashBalance);
 
         LOG.info("Updated cash balance for user {}: {} {}", userId, newAmount, currency);
     }
@@ -85,9 +81,9 @@ public class WalletProjectionService {
         Position position = positionRepository.findByUserIdAndSymbol(userId, symbol)
                 .orElse(null);
 
-        if (BUY.equalsIgnoreCase(side)) {
+        if (TradeEvent.BUY.equalsIgnoreCase(side)) {
             handleBuyPosition(userId, symbol, assetClass, quantity, price, position);
-        } else if (SELL.equalsIgnoreCase(side)) {
+        } else if (TradeEvent.SELL.equalsIgnoreCase(side)) {
             handleSellPosition(userId, symbol, quantity, price, position);
         }
     }
@@ -104,12 +100,13 @@ public class WalletProjectionService {
 
             BigDecimal newQty = currentQty.add(quantity);
             BigDecimal totalCost = (currentQty.multiply(currentAvgCost)).add(quantity.multiply(price));
+            // Standard scale 8 for cryptocurrency precision
             BigDecimal newAvgCost = totalCost.divide(newQty, 8, RoundingMode.HALF_UP);
 
             position.setQuantity(newQty);
             position.setAvgCost(newAvgCost);
             position.setCurrentPrice(price);
-            positionRepository.update(position);
+            positionRepository.save(position);
 
             LOG.info("Updated position for user {}: newQty={}, newAvgCost={}", userId, newQty, newAvgCost);
         }
@@ -131,7 +128,7 @@ public class WalletProjectionService {
         } else {
             position.setQuantity(remainingQty);
             position.setCurrentPrice(price);
-            positionRepository.update(position);
+            positionRepository.save(position);
             LOG.info("Reduced position for user {}: remainingQty={}", userId, remainingQty);
         }
     }
