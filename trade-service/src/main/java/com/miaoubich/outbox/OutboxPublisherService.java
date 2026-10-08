@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.kafka.common.PartitionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,7 @@ import com.miaoubich.model.OutboxEvent;
 import com.miaoubich.repository.OutboxDeadLetterRepository;
 import com.miaoubich.repository.OutboxEventRepository;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -45,6 +47,18 @@ public class OutboxPublisherService {
 		this.topic = topic;
 		this.deadLetterTopic = deadLetterTopic;
 		this.maxRetries = maxRetries;
+	}
+	
+	@PostConstruct
+    public void printTopicPartitions() {
+        List<PartitionInfo> partitions = kafkaTemplate.partitionsFor("trades-events");
+        
+        if (partitions != null) {
+            LOG.info("'trades-events' has {} partitions.", partitions.size());
+            for (PartitionInfo info : partitions) {
+                LOG.info("   -> Partition #{}  | Leader broker: {}", info.partition(), info.leader().id());
+            }
+        }
 	}
 
 	@Scheduled(fixedDelayString = "${app.outbox.poll-interval:5000}", 

@@ -4,6 +4,12 @@ spring:
   application:
     name: wallet-service
 
+  # To significantly increasing throughput under heavy loads I/O (like DB or network) 
+  #   operations, you can increase the number of threads in the thread pool.
+  threads:
+    virtual:
+      enabled: true
+
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     # Keep the wallet db in strict sync with Kafka
@@ -25,13 +31,18 @@ app:
       trades: trade-events	
 
   datasources:
-    default:
-      url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/wallet-service}
-      driverClassName: org.postgresql.Driver
-      username: ${DATASOURCE_USERNAME:postgres}
-      password: ${DATASOURCE_PASSWORD:password}
-      schema-generate: NONE
-      dialect: POSTGRES
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/wallet-service}
+    driverClassName: org.postgresql.Driver
+    username: ${DATASOURCE_USERNAME:postgres}
+    password: ${DATASOURCE_PASSWORD:password}
+    schema-generate: NONE
+    dialect: POSTGRES
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 30000
+      max-lifetime: 60000
+      connection-timeout: 30000
 
   jpa:
     hibernate:
