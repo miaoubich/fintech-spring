@@ -53,3 +53,6 @@ app:
   kafka:
     topics:
       trades: trade-events
+      dlq-topic: outbox.dead-letter
+      dlq:
+        max-retry: 10

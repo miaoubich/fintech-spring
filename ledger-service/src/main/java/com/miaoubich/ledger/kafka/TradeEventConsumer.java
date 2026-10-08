@@ -25,10 +25,9 @@ public class TradeEventConsumer {
     @KafkaListener(
             topics = "${app.kafka.topics.trades:trade-events}",
             groupId = "${spring.kafka.consumer.group-id:ledger-service-group}"
-    	    )
-    public void receive(
-    		@Payload TradeEvent event,
-            @Header(KafkaHeaders.RECEIVED_KEY) String key) {
+    )
+    public void receive(@Payload TradeEvent event,
+    					@Header(KafkaHeaders.RECEIVED_KEY) String key) {
         LOG.info(
                 "Received trade event. key={}, tradeId={}, userId={}, status={}",
                 key,

@@ -4,14 +4,27 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.miaoubich.model.OutboxEvent;
 
 public interface OutboxEventRepository extends JpaRepository<OutboxEvent, Long> {
 
-    @Query(value = "SELECT * FROM outbox_events WHERE processed = false ORDER BY created_at ASC FOR UPDATE SKIP LOCKED", 
+    @Query(value = """
+		    		SELECT * FROM outbox_events 
+		    			WHERE e.status = 'PENDING' 
+		    			ORDER BY e.created_at ASC 
+		    			LIMIT 100 
+		    			FOR UPDATE SKIP LOCKED
+		    		""", 
     		nativeQuery = true)
-    List<OutboxEvent> findUnprocessedEventsForUpdate();
+    List<OutboxEvent> findPendingEventsForUpdate();
     long countByProcessed(boolean processed);
+    
+    /**
+     * Find all dead letter events for monitoring or manual re-processing.
+     */
+    List<OutboxEvent> findByStatusOrderByCreatedAtDesc(OutboxEvent.Status status);
+    
 }
 

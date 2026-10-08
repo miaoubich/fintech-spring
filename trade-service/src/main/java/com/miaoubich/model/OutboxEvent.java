@@ -7,6 +7,8 @@ import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -22,6 +24,13 @@ import jakarta.persistence.Version;
 })
 public class OutboxEvent {
 
+	
+	public enum Status {
+        PENDING,       // Waiting to be picked up
+        PUBLISHED,     // Successfully sent to primary Kafka topic
+        DEAD_LETTER    // Aborted after max retries and moved to DLQ
+    }
+	
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "outbox_event_seq_gen")
     @SequenceGenerator(
@@ -43,19 +52,25 @@ public class OutboxEvent {
     @Column(name = "payload", nullable = false, columnDefinition = "jsonb")
     @JdbcTypeCode(SqlTypes.JSON)
     private String payload;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private Status status = Status.PENDING;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "processed", nullable = false)
-    private boolean processed;
-
-    @Column(name = "processed_at")
-    private Instant processedAt;
+    @Column(name = "published_at")
+    private Instant publishedAt;
 
     @Version
     @Column(name = "version", nullable = false)
     private Long version;
+    
+    @Column(nullable = false)
+    private int retryCount = 0;
+
+    private String lastError;
 
     public OutboxEvent() {
     }
@@ -66,13 +81,38 @@ public class OutboxEvent {
         this.aggregateType = aggregateType;
         this.payload = payload;
         this.createdAt = Instant.now();
-        this.processed = false;
     }
 
-    public void markAsProcessed() {
-        this.processed = true;
-        this.processedAt = Instant.now();
+    // State Transition Helpers
+    public void markAsPublished() {
+        this.status = Status.PUBLISHED;
     }
+    
+    public void markAsDeadLetter(String reason) {
+        this.status = Status.DEAD_LETTER;
+        this.lastError = reason;
+    }
+
+    public void incrementRetry(String errorMessage) {
+        this.retryCount++;
+        this.lastError = errorMessage;
+    }
+    
+	public int getRetryCount() {
+		return retryCount;
+	}
+
+	public String getLastError() {
+		return lastError;
+	}
+
+	public Status getStatus() {
+		return status;
+	}
+
+	public Instant getPublishedAt() {
+		return publishedAt;
+	}
 
 	public Long getId() {
 		return id;
@@ -116,22 +156,6 @@ public class OutboxEvent {
 
 	public void setCreatedAt(Instant createdAt) {
 		this.createdAt = createdAt;
-	}
-
-	public boolean isProcessed() {
-		return processed;
-	}
-
-	public void setProcessed(boolean processed) {
-		this.processed = processed;
-	}
-
-	public Instant getProcessedAt() {
-		return processedAt;
-	}
-
-	public void setProcessedAt(Instant processedAt) {
-		this.processedAt = processedAt;
 	}
 
 	public Long getVersion() {

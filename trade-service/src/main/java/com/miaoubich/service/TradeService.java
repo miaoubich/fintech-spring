@@ -62,7 +62,6 @@ public class TradeService {
         outboxEvent.setAggregateType(TradeEvent.AGGREGATE_TYPE);
         outboxEvent.setPayload(payload);
         outboxEvent.setCreatedAt(now);
-        outboxEvent.setProcessed(false);
 
         tradeRepository.save(trade);
         outboxEventRepository.save(outboxEvent);
@@ -129,7 +128,6 @@ public class TradeService {
 	    outboxEvent.setAggregateType(TradeEvent.AGGREGATE_TYPE);
 	    outboxEvent.setPayload(payload);
 	    outboxEvent.setCreatedAt(Instant.now());
-	    outboxEvent.setProcessed(false);
 
 	    outboxEventRepository.save(outboxEvent);
 
