@@ -24,7 +24,7 @@ public class TradeEventConsumer {
 
     @KafkaListener(
             topics = "${app.kafka.topics.trades:trade-events}",
-            groupId = "${spring.kafka.consumer.group-id:ledger-service-group}"
+            groupId = "${spring.kafka.consumer.group-id:ledger-service-group-v2}"
     )
     public void receive(@Payload TradeEvent event,
     					@Header(KafkaHeaders.RECEIVED_KEY) String key) {
@@ -45,9 +45,6 @@ public class TradeEventConsumer {
                     e.getMessage(),
                     e
             );
-
-            // Rethrow so Kafka does NOT commit the offset
-            // The message will be retried
             throw e;
         }
     }

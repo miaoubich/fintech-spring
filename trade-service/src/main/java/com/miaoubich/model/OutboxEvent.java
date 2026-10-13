@@ -19,7 +19,7 @@ import jakarta.persistence.Version;
 
 @Entity
 @Table(name = "outbox_events", indexes = {
-        @Index(name = "idx_outbox_events_processed", columnList = "processed, created_at"),
+        @Index(name = "idx_outbox_events_status", columnList = "status, created_at"),
         @Index(name = "idx_outbox_events_aggregate", columnList = "aggregate_id")
 })
 public class OutboxEvent {
@@ -86,6 +86,7 @@ public class OutboxEvent {
     // State Transition Helpers
     public void markAsPublished() {
         this.status = Status.PUBLISHED;
+        this.publishedAt = Instant.now();
     }
     
     public void markAsDeadLetter(String reason) {

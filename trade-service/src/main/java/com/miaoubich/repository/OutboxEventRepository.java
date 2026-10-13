@@ -10,7 +10,7 @@ import com.miaoubich.model.OutboxEvent;
 public interface OutboxEventRepository extends JpaRepository<OutboxEvent, Long> {
 
     @Query(value = """
-		    		SELECT * FROM outbox_events 
+		    		SELECT * FROM outbox_events e
 		    			WHERE e.status = 'PENDING' 
 		    			ORDER BY e.created_at ASC 
 		    			LIMIT 100 
@@ -18,7 +18,7 @@ public interface OutboxEventRepository extends JpaRepository<OutboxEvent, Long> 
 		    		""", 
     		nativeQuery = true)
     List<OutboxEvent> findPendingEventsForUpdate();
-    long countByProcessed(boolean processed);
+    long countByStatus(OutboxEvent.Status status);
     
     /**
      * Find all dead letter events for monitoring or manual re-processing.

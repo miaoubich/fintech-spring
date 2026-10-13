@@ -43,9 +43,11 @@ public class EventProcessService {
 
         // Step 1: Validate
         validate(event);
+        
+        LOG.info("event.status() -> {}", event.status());
 
         // Step 2: Only process EXECUTED trades
-        if (!TradeEvent.EVENT_TYPE_EXECUTED.equalsIgnoreCase(event.status())) {
+        if (!TradeEvent.STATUS_EXECUTED.equalsIgnoreCase(event.status())) {
             LOG.info(
                     "Ignoring non-executed trade. tradeId={}, status={}",
                     event.tradeId(),

@@ -38,7 +38,7 @@ public class OutboxPublisherService {
 
 	public OutboxPublisherService(OutboxEventRepository outboxEventRepository,
 			OutboxDeadLetterRepository outboxDeadLetterRepository, KafkaTemplate<String, String> kafkaTemplate,
-			@Value("${app.kafka.topics.trades:trades-events}") String topic,
+			@Value("${app.kafka.topics.trades:trade-events}") String topic,
 			@Value("${app.kafka.topics.dlq-topic:outbox.dead-letter}") String deadLetterTopic,
 			@Value("${app.kafka.topics.dlq.max-retry:10}") int maxRetries) {
 		this.outboxEventRepository = outboxEventRepository;
@@ -51,10 +51,10 @@ public class OutboxPublisherService {
 	
 	@PostConstruct
     public void printTopicPartitions() {
-        List<PartitionInfo> partitions = kafkaTemplate.partitionsFor("trades-events");
+        List<PartitionInfo> partitions = kafkaTemplate.partitionsFor(topic);
         
         if (partitions != null) {
-            LOG.info("'trades-events' has {} partitions.", partitions.size());
+            LOG.info("'trade-events' has {} partitions.", partitions.size());
             for (PartitionInfo info : partitions) {
                 LOG.info("   -> Partition #{}  | Leader broker: {}", info.partition(), info.leader().id());
             }

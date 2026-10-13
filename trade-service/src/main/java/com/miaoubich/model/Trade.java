@@ -19,7 +19,7 @@ public class Trade {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "trade_seq_gen")
-	@SequenceGenerator(name = "trade_seq_gen", sequenceName = "trtade_seqs", allocationSize = 50)
+	@SequenceGenerator(name = "trade_seq_gen", sequenceName = "trade_seqs", allocationSize = 50)
 	private Long id;
 
 	@Column(name = "trade_id", nullable = false, unique = true)
