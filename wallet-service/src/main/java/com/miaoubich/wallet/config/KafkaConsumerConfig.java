@@ -15,6 +15,8 @@ public class KafkaConsumerConfig {
 	
 	@Value("${app.kafka.topics.trades:trade-events}")
 	private String mainTopic;
+	@Value("${app.kafka.topics.replication-factor:1}")
+	private int replicationFactor;
 
 	// 1. Automatically creates the DLT topic onstart-up (if it doesn't exist)
 	@Bean
@@ -23,7 +25,7 @@ public class KafkaConsumerConfig {
 							String mainTopic) {
 		return TopicBuilder.name(mainTopic + ".DLT") // trade-events.DLT
 				.partitions(3) // Match primary topic partition count
-				.replicas(1) // 1 for local dev, 3 for production
+				.replicas(replicationFactor) // 1 copy of the Kafka broker for local dev, 3 for production
 				.build();
 	}
 	

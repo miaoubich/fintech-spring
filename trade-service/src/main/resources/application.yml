@@ -56,3 +56,4 @@ app:
       dlq-topic: outbox.dead-letter
       dlq:
         max-retry: 10
+      replication-factor: ${KAFKA_REPLICATION_FACTOR:1} # Defaults to 1 locally (Runnin a single Kafka container), but should be set to 3 in production for high availability.
