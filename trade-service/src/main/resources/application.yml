@@ -34,15 +34,15 @@ spring:
         enable.idempotence: true
         retries: 3
 
-#eureka:
- # client:
-  #  service-url:
-   #   defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
-    #register-with-eureka: ${EUREKA_ENABLED:false}
-    #fetch-registry: ${EUREKA_ENABLED:false}
-  #instance:
-   # prefer-ip-address: true
-    #instance-id: ${spring.application.name}:${server.port}
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://eureka-server/eureka}
+    register-with-eureka: ${EUREKA_ENABLED:false}
+    fetch-registry: ${EUREKA_ENABLED:false}
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
 
 # Actuator Endpoints for Eureka health
 management:

@@ -54,15 +54,15 @@ spring:
         spring.json.trusted.packages: com.miaoubich.*
         spring.json.use.type.headers: false
 
-#eureka:
- # client:
-  #  service-url:
-   #   defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
-    #register-with-eureka: true
-    #fetch-registry: true
-  #instance:
-   # prefer-ip-address: true
-    #instance-id: ${spring.application.name}:${server.port}
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://eureka-server:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
 
 # Actuator
 management:
