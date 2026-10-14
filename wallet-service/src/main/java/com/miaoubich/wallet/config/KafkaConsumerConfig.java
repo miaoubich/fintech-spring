@@ -1,6 +1,8 @@
 package com.miaoubich.wallet.config;
 
 import org.apache.kafka.clients.admin.NewTopic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +14,8 @@ import org.springframework.kafka.support.ExponentialBackOffWithMaxRetries;
 
 @Configuration
 public class KafkaConsumerConfig {
+	
+	private static final Logger LOG = LoggerFactory.getLogger(KafkaConsumerConfig.class);
 	
 	@Value("${app.kafka.topics.trades:trade-events}")
 	private String mainTopic;
@@ -34,6 +38,8 @@ public class KafkaConsumerConfig {
 		// 1. Dead Letter Topic Recoverer
 		var recoverer = new DeadLetterPublishingRecoverer(template);
 		// Default convention: failed messages from "trade-events" → "trade-events.DLT"
+		
+		LOG.info("", template.toString());
 		
 		// 2. Exponential Back-off with Max Retries
 		var backOff = new ExponentialBackOffWithMaxRetries(6); // 6 retries (7 attempts in total = the original attempt + 6 retries)
