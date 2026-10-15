@@ -1,0 +1,32 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: trade-service
+          uri: lb://trade-service
+          predicates:
+            - Path=/trades,/trades/**
+
+        - id: ledger-service
+          uri: lb://ledger-service
+          predicates:
+            - Path=/ledger,/ledger/**
+
+        - id: wallet-service
+          uri: lb://wallet-service
+          predicates:
+            - Path=/wallet,/wallet/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    register-with-eureka: ${EUREKA_ENABLED:true}
+    fetch-registry: ${EUREKA_ENABLED:true}
+  instance:
+    prefer-ip-address: true
