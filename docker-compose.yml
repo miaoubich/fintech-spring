@@ -1,7 +1,23 @@
 services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - fintech-spring
+
   eureka-server:
     build: ./eureka-server
-    container_name: eureka-server
     ports:
       - "8761:8761"
     networks:
@@ -9,28 +25,97 @@ services:
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
-    container_name: zookeeper
     ports:
       - "2181:2181"
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_CLIENT_PORT: "2181"
     networks:
       - fintech-spring
 
   kafka:
     image: confluentinc/cp-kafka:7.6.1
-    container_name: kafka
     ports:
       - "9092:9092"
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_LISTENERS: "INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
     depends_on:
       - zookeeper
+    networks:
+      - fintech-spring
+
+  trade-service:
+    build: ./trade-service
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: "8081"
+      SPRING_APPLICATION_NAME: trade-service
+      EUREKA_SERVER_URL: "http://eureka-server:8761/eureka/"
+      EUREKA_ENABLED: "true"
+      KAFKA_BOOTSTRAP_SERVERS: "kafka:29092"
+      DATASOURCE_URL: "jdbc:postgresql://postgres:5432/trade-service"
+      DATASOURCE_USERNAME: "postgres"
+      DATASOURCE_PASSWORD: "password"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      kafka:
+        condition: service_started
+    networks:
+      - fintech-spring
+
+  ledger-service:
+    build: ./ledger-service
+    ports:
+      - "8082:8082"
+    environment:
+      SERVER_PORT: "8082"
+      SPRING_APPLICATION_NAME: ledger-service
+      EUREKA_SERVER_URL: "http://eureka-server:8761/eureka/"
+      EUREKA_ENABLED: "true"
+      KAFKA_BOOTSTRAP_SERVERS: "kafka:29092"
+      DATASOURCE_URL: "jdbc:postgresql://postgres:5432/ledger-service"
+      DATASOURCE_USERNAME: "postgres"
+      DATASOURCE_PASSWORD: "password"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      kafka:
+        condition: service_started
+    networks:
+      - fintech-spring
+
+  wallet-service:
+    build: ./wallet-service
+    ports:
+      - "8083:8083"
+    environment:
+      SERVER_PORT: "8083"
+      SPRING_APPLICATION_NAME: wallet-service
+      EUREKA_SERVER_URL: "http://eureka-server:8761/eureka/"
+      EUREKA_ENABLED: "true"
+      KAFKA_BOOTSTRAP_SERVERS: "kafka:29092"
+      DATASOURCE_URL: "jdbc:postgresql://postgres:5432/wallet-service"
+      DATASOURCE_USERNAME: "postgres"
+      DATASOURCE_PASSWORD: "password"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      kafka:
+        condition: service_started
     networks:
       - fintech-spring
 
@@ -38,6 +123,13 @@ networks:
   fintech-spring:
     driver: bridge
 
+volumes:
+  postgres_data:
 
-# --- check it with ---
+# Inside Docker, services use `eureka-server:8761` for Eureka and `kafka:29092` for Kafka—not `localhost`. The Kafka setup above keeps `localhost:9092` available for clients running directly on your computer. Remove the Kafka environment variable and dependency from any microservice that doesn’t use Kafka.
+
+# From the directory containing `docker-compose.yml`, validate and start everything:
+
 # docker compose config
+# docker compose up -d --build
+# docker compose ps

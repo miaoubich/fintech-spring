@@ -22,7 +22,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-    show_sql: true
+    show_sql: false
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
@@ -37,9 +37,9 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://eureka-server/eureka}
-    register-with-eureka: ${EUREKA_ENABLED:false}
-    fetch-registry: ${EUREKA_ENABLED:false}
+      defaultZone: ${EUREKA_SERVER_URL:http://eureka-server:8761/eureka/}
+    register-with-eureka: ${EUREKA_ENABLED:true}
+    fetch-registry: ${EUREKA_ENABLED:true}
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
