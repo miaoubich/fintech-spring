@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: trade-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:jwk-set-uri:http://localhost:9090/realms/Maradga/protocol/openid-connect/certs}
 
   datasource:
     url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/trade-service}

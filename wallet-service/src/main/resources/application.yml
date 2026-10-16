@@ -3,6 +3,11 @@ server:
 spring:
   application:
     name: wallet-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:jwk-set-uri:http://localhost:9090/realms/Maradga/protocol/openid-connect/certs}
 
   # To significantly increasing throughput under heavy loads I/O (like DB or network) 
   #   operations, you can increase the number of threads in the thread pool.

@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: api-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:jwk-set-uri:http://localhost:9090/realms/Maradga/protocol/openid-connect/certs}
   cloud:
     gateway:
       routes:
@@ -30,3 +35,9 @@ eureka:
     fetch-registry: ${EUREKA_ENABLED:true}
   instance:
     prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
