@@ -1,0 +1,52 @@
+server:
+  port: ${SERVER_PORT:8084}
+
+spring:
+  application:
+    name: customer-service
+
+  datasource:
+    # append reWriteBatchedInserts=true for PostgreSQL JDBC driver to combine batch inserts into multi-value statements
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/customer-service?reWriteBatchedInserts=true}
+    driver-class-name: org.postgresql.Driver
+    username: ${DATASOURCE_USERNAME:postgres}
+    password: ${DATASOURCE_PASSWORD:password}
+
+  jpa:
+    open-in-view: false # Best practice: prevents accidental lazy-loading N+1 queries in controllers
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        # --- Heavy Hibernate Batch Configuration ---
+        jdbc:
+          batch_size: 50
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+        default_batch_fetch_size: 50
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/Maradga}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    register-with-eureka: ${EUREKA_ENABLED:true}
+    fetch-registry: ${EUREKA_ENABLED:true}
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+# Actuator
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info

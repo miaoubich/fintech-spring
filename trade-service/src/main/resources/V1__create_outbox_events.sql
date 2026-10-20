@@ -15,7 +15,7 @@
 
 CREATE SEQUENCE IF NOT EXISTS outbox_events_seq
     START WITH 1
-    INCREMENT BY 1;
+    INCREMENT BY 50;
 
 CREATE TABLE IF NOT EXISTS outbox_events (
     id BIGINT PRIMARY KEY DEFAULT nextval('outbox_events_seq'),
