@@ -11,9 +11,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	Optional<User> findByUsername(String username);
 	
-	boolean existByUsername(String username);
+	boolean existsByUsername(String username);
 	
-	boolean existByEmail(String email);
+	boolean existsByEmail(String email);
 	
 	// User by the 1-minute @Schedular job to find all unsynced users
 	List<User> findBySyncedFalse();

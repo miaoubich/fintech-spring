@@ -2,7 +2,8 @@ package com.miaoubich.auth.model;
 
 public enum UserRole {
 
-	// Realm rolesADMIN("admin"),
+	// Realm roles
+	ADMIN("admin"),
     AUDIT("audit"),
     COMPLIANCE("compliance"),
     FRAUD("fraud"),

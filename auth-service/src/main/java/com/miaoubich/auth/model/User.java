@@ -36,6 +36,12 @@ public class User {
 
 	@Column(name = "last_name", nullable = false, length = 100)
 	private String lastName;
+	
+	@Column(name = "enabled")
+	private boolean enabled;
+	
+	@Column(name = "emailVerified")
+	private boolean emailVerified;
 
 	@Column(name = "password_hash", nullable = false)
 	private String passwordHash;
@@ -143,6 +149,30 @@ public class User {
 
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
+	}
+	
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public boolean isEmailVerified() {
+		return emailVerified;
+	}
+
+	public void setEmailVerified(boolean emailVerified) {
+		this.emailVerified = emailVerified;
+	}
+
+	public void setCreatedAt(Instant createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public void setUpdatedAt(Instant updatedAt) {
+		this.updatedAt = updatedAt;
 	}
 
 	public String getPasswordHash() {
