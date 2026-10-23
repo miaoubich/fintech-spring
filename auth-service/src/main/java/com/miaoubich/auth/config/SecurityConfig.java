@@ -14,6 +14,12 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+	private final JwtAuthConverter jwtAuthConverter;
+
+    public SecurityConfig(JwtAuthConverter jwtAuthConverter) {
+        this.jwtAuthConverter = jwtAuthConverter;
+    }
+    
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
@@ -35,7 +41,7 @@ public class SecurityConfig {
 				.anyRequest().authenticated()
 			)
 			.oauth2ResourceServer(oauth2 -> 
-									oauth2.jwt(jwt -> {}));// uses issuer-uri from application.yml
+									oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter)));
 	
 		return http.build();
 	}

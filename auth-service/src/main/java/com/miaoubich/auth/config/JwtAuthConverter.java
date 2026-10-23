@@ -35,10 +35,12 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
     @SuppressWarnings("unchecked")
     private Stream<GrantedAuthority> extractRealmRoles(Jwt jwt) {
         Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
-        if (realmAccess == null) return Stream.empty();
+        if (realmAccess == null) 
+        	return Stream.empty();
 
         List<String> roles = (List<String>) realmAccess.get("roles");
-        if (roles == null) return Stream.empty();
+        if (roles == null) 
+        	return Stream.empty();
 
         return roles.stream()
                 .map(r -> new SimpleGrantedAuthority("ROLE_" + r));
@@ -47,13 +49,16 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
     @SuppressWarnings("unchecked")
     private Stream<GrantedAuthority> extractClientRoles(Jwt jwt) {
         Map<String, Object> resourceAccess = jwt.getClaimAsMap("resource_access");
-        if (resourceAccess == null) return Stream.empty();
+        if (resourceAccess == null) 
+        	return Stream.empty();
 
         Map<String, Object> client = (Map<String, Object>) resourceAccess.get(clientId);
-        if (client == null) return Stream.empty();
+        if (client == null) 
+        	return Stream.empty();
 
         List<String> roles = (List<String>) client.get("roles");
-        if (roles == null) return Stream.empty();
+        if (roles == null) 
+        	return Stream.empty();
 
         return roles.stream()
                 .map(r -> new SimpleGrantedAuthority("ROLE_" + r));

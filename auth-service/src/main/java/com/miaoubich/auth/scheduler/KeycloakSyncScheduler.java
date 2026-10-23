@@ -30,23 +30,24 @@ public class KeycloakSyncScheduler {
     @Scheduled(fixedRate = 60_000) // every 1 minute
     @Transactional
     public void syncUnsyncedUsers() {
-        List<User> unsynced = userRepository.findBySyncedFalse();
-        if (unsynced.isEmpty()) return;
+        var unsynced = userRepository.findBySyncedFalse();
+        if (unsynced.isEmpty()) 
+        	return;
 
         LOG.info("Found {} unsynced user(s) — starting Keycloak sync", unsynced.size());
 
-        for (User user : unsynced) {
+        for (var user : unsynced) {
             try {
-                String keycloakId = keycloakAdminService.syncUserToKeycloak(user);
+                var keycloakId = keycloakAdminService.syncUserToKeycloak(user);
                 user.setKeycloakId(keycloakId);
                 user.setSynced(true);
                 user.setPendingKeycloakPassword(null); // wipe plain-text
                 user.setLastSyncedAt(Instant.now());
                 userRepository.save(user);
-                LOG.info("✅ Synced user {} → Keycloak UUID {}", user.getUsername(), keycloakId);
+                LOG.info("Synced user {} → Keycloak UUID {}", user.getUsername(), keycloakId);
             } catch (Exception e) {
-                LOG.error("❌ Failed to sync user {}: {}", user.getUsername(), e.getMessage());
-                // Don't rethrow — continue with next user
+                LOG.error("Failed to sync user {}: {}", user.getUsername(), e.getMessage());
+                // No re-throw — continue with next user
             }
         }
     }
