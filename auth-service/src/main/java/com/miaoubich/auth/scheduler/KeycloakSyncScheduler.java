@@ -41,6 +41,8 @@ public class KeycloakSyncScheduler {
                 var keycloakId = keycloakAdminService.syncUserToKeycloak(user);
                 user.setKeycloakId(keycloakId);
                 user.setSynced(true);
+                user.setEnabled(true);      
+                user.setEmailVerified(true);
                 user.setPendingKeycloakPassword(null); // wipe plain-text
                 user.setLastSyncedAt(Instant.now());
                 userRepository.save(user);

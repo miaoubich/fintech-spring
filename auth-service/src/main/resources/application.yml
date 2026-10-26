@@ -1,5 +1,5 @@
 server:
-  port: ${SERVER_PORT}
+  port: ${SERVER_PORT:8085}
 
 spring:
   application:
@@ -8,8 +8,8 @@ spring:
   datasource: 
     url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/auth-service}
     driver-class-name: org.postgresql.Driver
-    username: ${DATASOURCE_USERNAME}
-    password: ${DATASOURCE_PASSWORD}
+    username: ${DATASOURCE_USERNAME:postgres}
+    password: ${DATASOURCE_PASSWORD:password}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 3
@@ -29,20 +29,20 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/Maradga}
 
 keycloak:
-  server-url: ${KEYCLOAK_SERVER_URL}
-  realm: ${KEYCLOAK_REALM}
-  client-id: ${KEYCLOAK_CLIENT_ID}
+  server-url: ${KEYCLOAK_SERVER_URL:http://localhost:9090}
+  realm: ${KEYCLOAK_REALM:Maradga}
+  client-id: ${KEYCLOAK_CLIENT_ID:fintech}
   client-secret: ${KEYCLOAK_CLIENT_SECRET}
 
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_SERVER_URL}
-    register-with-eureka: ${EUREKA_ENABLED}
-    fetch-registry: ${EUREKA_ENABLED}
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    register-with-eureka: ${EUREKA_ENABLED:true}
+    fetch-registry: ${EUREKA_ENABLED:true}
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
