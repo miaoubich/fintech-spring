@@ -8,10 +8,15 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:jwk-set-uri:http://localhost:9090/realms/Maradga/protocol/openid-connect/certs}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/Maradga}
   cloud:
     gateway:
       routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**	
+
         - id: trade-service
           uri: lb://trade-service
           predicates:

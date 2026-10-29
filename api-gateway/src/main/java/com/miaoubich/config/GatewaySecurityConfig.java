@@ -1,11 +1,6 @@
 package com.miaoubich.config;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import java.util.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,29 +11,30 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-
 import reactor.core.publisher.Flux;
 
 @Configuration
 @EnableWebFluxSecurity
 public class GatewaySecurityConfig {
 
-    private static final String REALM_ROLES_CLAIM = "realm_access.roles";
-    private static final String FINTECH_ROLES_CLAIM = "resource_access.fintech.roles";
+    private static final String CLIENT_ID = "fintech";
 
     @Bean
     SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http
             .csrf(ServerHttpSecurity.CsrfSpec::disable)
             .authorizeExchange(ex -> ex
-                .pathMatchers("/api/auth/register", "/api/auth/login", "/actuator/**").permitAll()
+                // Match the actual route predicate (/auth/**)
+                .pathMatchers("/auth/**", "/actuator/**").permitAll()
 
-                .pathMatchers("/customers/**").hasAuthority("CUSTOMER_READ")
+                // Customer routes
+                .pathMatchers(HttpMethod.GET, "/customers/**").hasAuthority("CUSTOMER_READ")
                 .pathMatchers(HttpMethod.POST, "/customers/**").hasAuthority("CUSTOMER_WRITE")
                 .pathMatchers(HttpMethod.PUT, "/customers/**").hasAuthority("CUSTOMER_WRITE")
                 .pathMatchers(HttpMethod.DELETE, "/customers/**").hasAuthority("CUSTOMER_DELETE")
                 .pathMatchers("/customers/admin/**").hasAuthority("CUSTOMER_FULL")
 
+                // Domain microservice routes (Now mapped below!)
                 .pathMatchers("/trades/**").hasAuthority("TRADE_READ")
                 .pathMatchers("/ledger/**").hasAuthority("LEDGER_READ")
                 .pathMatchers("/wallet/**").hasAuthority("WALLET_READ")
@@ -54,62 +50,90 @@ public class GatewaySecurityConfig {
     @Bean
     ReactiveJwtAuthenticationConverter reactiveJwtAuthenticationConverter() {
         ReactiveJwtAuthenticationConverter converter = new ReactiveJwtAuthenticationConverter();
-        // In WebFlux the authorities converter must return Converter<Jwt, Flux<GrantedAuthority>>
-        converter.setJwtGrantedAuthoritiesConverter(jwt 
-        									-> Flux.fromIterable(extractAuthorities(jwt)));
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> Flux.fromIterable(extractAuthorities(jwt)));
         return converter;
     }
 
     private Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
         Set<String> rawRoles = new HashSet<>();
-        rawRoles.addAll(extractRoles(jwt.getClaim(REALM_ROLES_CLAIM)));
-        rawRoles.addAll(extractRoles(jwt.getClaim(FINTECH_ROLES_CLAIM)));
+        rawRoles.addAll(extractRealmRoles(jwt));
+        rawRoles.addAll(extractClientRoles(jwt, CLIENT_ID));
 
         List<GrantedAuthority> authorities = new ArrayList<>();
 
-        // keep raw roles as ROLE_* authorities (optional, useful for hasRole)
+        // 1. Keep raw roles prefixed with ROLE_ (e.g. ROLE_admin, ROLE_super)
         for (String role : rawRoles) {
             authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
         }
 
-        // map Keycloak roles to functional business authorities
-        if (rawRoles.contains("super")) {
+        // 2. Map Keycloak roles to domain business authorities
+
+        // SUPER & ADMIN roles get full access across all domains
+        if (rawRoles.contains("super") || rawRoles.contains("admin") || rawRoles.contains("admin1")) {
             authorities.add(new SimpleGrantedAuthority("CUSTOMER_FULL"));
-        }
-        if (rawRoles.contains("admin") || rawRoles.contains("admin1")) {
             authorities.add(new SimpleGrantedAuthority("CUSTOMER_READ"));
             authorities.add(new SimpleGrantedAuthority("CUSTOMER_WRITE"));
             authorities.add(new SimpleGrantedAuthority("CUSTOMER_DELETE"));
+            authorities.add(new SimpleGrantedAuthority("TRADE_READ"));
+            authorities.add(new SimpleGrantedAuthority("LEDGER_READ"));
+            authorities.add(new SimpleGrantedAuthority("WALLET_READ"));
         }
-        if (Set.of("user1", "user2", "user3").contains(rawRoles)) {
+
+        // REGULAR USERS get read access to Trades, Wallet, Ledger, and Customer
+        if (rawRoles.contains("user") || rawRoles.contains("user1") || rawRoles.contains("user2") || rawRoles.contains("user3")) {
             authorities.add(new SimpleGrantedAuthority("CUSTOMER_READ"));
+            authorities.add(new SimpleGrantedAuthority("TRADE_READ"));
+            authorities.add(new SimpleGrantedAuthority("LEDGER_READ"));
+            authorities.add(new SimpleGrantedAuthority("WALLET_READ"));
         }
-        if (rawRoles.contains("compliance1") || rawRoles.contains("compliance2")) {
+
+        // COMPLIANCE
+        if (rawRoles.contains("compliance") || rawRoles.contains("compliance1") || rawRoles.contains("compliance2")) {
             authorities.add(new SimpleGrantedAuthority("CUSTOMER_READ"));
             authorities.add(new SimpleGrantedAuthority("CUSTOMER_AUDIT"));
+            authorities.add(new SimpleGrantedAuthority("TRADE_READ"));
+            authorities.add(new SimpleGrantedAuthority("LEDGER_READ"));
         }
-        if (rawRoles.contains("fraud1")) {
+
+        // FRAUD
+        if (rawRoles.contains("fraud") || rawRoles.contains("fraud1")) {
             authorities.add(new SimpleGrantedAuthority("CUSTOMER_READ"));
             authorities.add(new SimpleGrantedAuthority("CUSTOMER_SUSPEND"));
+            authorities.add(new SimpleGrantedAuthority("TRADE_READ"));
         }
-        if (rawRoles.contains("support1") || rawRoles.contains("support2")) {
+
+        // SUPPORT
+        if (rawRoles.contains("support") || rawRoles.contains("support1") || rawRoles.contains("support2")) {
             authorities.add(new SimpleGrantedAuthority("CUSTOMER_READ"));
             authorities.add(new SimpleGrantedAuthority("CUSTOMER_SUPPORT"));
+            authorities.add(new SimpleGrantedAuthority("WALLET_READ"));
         }
 
         return authorities;
     }
 
-    private List<String> extractRoles(Object claim) {
-        if (claim == null) return List.of();
-        if (claim instanceof String s) return List.of(s);
-        if (claim instanceof List<?> list) return list.stream().map(Object::toString).toList();
+    /**
+     * Safely extract realm roles from nested JWT map: realm_access -> roles
+     */
+    @SuppressWarnings("unchecked")
+    private List<String> extractRealmRoles(Jwt jwt) {
+        Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
+        if (realmAccess != null && realmAccess.get("roles") instanceof List<?> roles) {
+            return roles.stream().map(Object::toString).toList();
+        }
+        return List.of();
+    }
 
-        // fallback for org.json.JSONArray if your JWT parser ever uses it
-        if (claim instanceof org.json.JSONArray arr) {
-            List<Object> items = new ArrayList<>();
-            for (int i = 0; i < arr.length(); i++) items.add(arr.get(i));
-            return items.stream().map(Object::toString).toList();
+    /**
+     * Safely extract client roles from nested JWT map: resource_access -> fintech -> roles
+     */
+    @SuppressWarnings("unchecked")
+    private List<String> extractClientRoles(Jwt jwt, String clientId) {
+        Map<String, Object> resourceAccess = jwt.getClaimAsMap("resource_access");
+        if (resourceAccess != null && resourceAccess.get(clientId) instanceof Map<?, ?> clientMap) {
+            if (clientMap.get("roles") instanceof List<?> roles) {
+                return roles.stream().map(Object::toString).toList();
+            }
         }
         return List.of();
     }

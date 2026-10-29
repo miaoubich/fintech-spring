@@ -13,6 +13,8 @@ public enum UserRole {
     // Specific user roles
     SUPER("super"),
     ADMIN1("admin1"),
+    AUDIT1("audit1"),
+    AUDIT2("audit2"),
     COMPLIANCE1("compliance1"),
     COMPLIANCE2("compliance2"),
     FRAUD1("fraud1"),

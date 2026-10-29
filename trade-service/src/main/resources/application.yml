@@ -8,7 +8,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:jwk-set-uri:http://localhost:9090/realms/Maradga/protocol/openid-connect/certs}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/Maradga}
 
   datasource:
     url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/trade-service}
