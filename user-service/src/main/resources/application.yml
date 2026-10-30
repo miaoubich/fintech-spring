@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: auth-service
+    name: user-service
   
   datasource: 
     url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/auth-service}
@@ -58,8 +58,13 @@ management:
   tracing:
     sampling:
       probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_URI:http://localhost:9411/api/v2/spans}
 
 logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
   level:
     org:
       springframework:
