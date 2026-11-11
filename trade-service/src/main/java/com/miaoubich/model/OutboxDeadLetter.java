@@ -57,8 +57,8 @@ public class OutboxDeadLetter {
         this.payload = payload;
         this.retryCount = retryCount;
         this.lastError = lastError;
-        this.publishedToKafka = publishedToKafka;
         this.createdAt = createdAt;
+        this.publishedToKafka = publishedToKafka;
     }
 
     // Getters and Setters

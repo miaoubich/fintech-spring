@@ -11,7 +11,27 @@ spring:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/Maradga}
   cloud:
     gateway:
-      routes:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+            allowedMethods:
+              - GET			  
+              - POST			  
+              - PUT			  
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            exposedHeaders:
+              - "Authorization"
+            allowCredentials: false
+
+      routes:        
         - id: user-service
           uri: lb://user-service
           predicates:

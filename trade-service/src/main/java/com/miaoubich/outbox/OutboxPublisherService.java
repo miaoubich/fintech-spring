@@ -77,12 +77,6 @@ public class OutboxPublisherService {
 		LOG.info("Found {} pending outbox events", pendingEvents.size());
 
 		for (OutboxEvent event : pendingEvents) {
-			// DLQ check FIRST — skip sending if retry limit exceeded
-			if (event.getRetryCount() >= maxRetries) {
-				moveToDeadLetterQueue(event);
-				continue; // move to next event
-			}
-
 			try {
 				// 2. Dispatch the event to Kafka
 				// 3. SYNCHRONOUS WAIT FOR BROKER ACK:
@@ -113,25 +107,27 @@ public class OutboxPublisherService {
 						sentKey, sentTopic,sentBody, partition, offset, timestamp);
 
 			} catch (TimeoutException e) {
-				// Broker is unresponsive or under high load
 				String errorMsg = "Kafka ACK timeout after " + KAFKA_ACK_TIMEOUT_SECONDS + "s";
-			    event.incrementRetry(errorMsg); // Increments counter
-			    outboxEventRepository.save(event); // Persists new count and error
-				
-			    LOG.error(
-						"Timeout ({}s) waiting for Kafka ACK on OutboxEvent [id={}, aggregateId={}]. Will retry next poll.",
+			    event.incrementRetry(errorMsg);
+			    handleRetryOrDlq(event);
+				LOG.error("Timeout ({}s) waiting for Kafka ACK on OutboxEvent [id={}, aggregateId={}]. Will retry next poll.",
 						KAFKA_ACK_TIMEOUT_SECONDS, event.getId(), event.getAggregateId());
-				break; // Stop loop immediately: do not flood a slow broker
+				break;
 
 			} catch (Exception e) {
 				event.incrementRetry(e.getMessage());
-				outboxEventRepository.save(event);
-				LOG.error("Failed to publish OutboxEvent id={}, error={} -> Will retry.", event.getId(), e.getMessage(),
-						e);
-				// If Kafka fails, the processed remains false → scheduler retries next cycle -
-				// outbox retry
+				handleRetryOrDlq(event);
+				LOG.error("Failed to publish OutboxEvent id={}, error={} -> Will retry.", event.getId(), e.getMessage(), e);
 				break;
 			}
+		}
+	}
+
+	private void handleRetryOrDlq(OutboxEvent event) {
+		if (event.getRetryCount() >= maxRetries) {
+			moveToDeadLetterQueue(event);
+		} else {
+			outboxEventRepository.save(event);
 		}
 	}
 
@@ -162,7 +158,7 @@ public class OutboxPublisherService {
 				event.getLastError(), 
 				Instant.now(), 
 				publishedToDlqTopic // Stores whether Kafka
-																								// DLQ topic received it
+								    // DLQ topic received it
 		);
 		outboxDeadLetterRepository.save(dlq);
 

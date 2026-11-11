@@ -1,16 +1,24 @@
 package com.miaoubich.config;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+
 import reactor.core.publisher.Flux;
 
 @Configuration
@@ -22,18 +30,20 @@ public class GatewaySecurityConfig {
     @Bean
     SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http
-            .csrf(ServerHttpSecurity.CsrfSpec::disable)
+            .csrf(CsrfSpec::disable)
             .authorizeExchange(ex -> ex
                 // Match the actual route predicate (/auth/**)
                 .pathMatchers("/auth/**", "/actuator/**").permitAll()
 
                 // Customer routes
+                .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .pathMatchers("/auth/register", "/auth/login", "/auth/refresh").permitAll()
                 .pathMatchers(HttpMethod.GET, "/customers/**").hasAuthority("CUSTOMER_READ")
                 .pathMatchers(HttpMethod.POST, "/customers/**").hasAuthority("CUSTOMER_WRITE")
                 .pathMatchers(HttpMethod.PUT, "/customers/**").hasAuthority("CUSTOMER_WRITE")
                 .pathMatchers(HttpMethod.DELETE, "/customers/**").hasAuthority("CUSTOMER_DELETE")
                 .pathMatchers("/customers/admin/**").hasAuthority("CUSTOMER_FULL")
-
+                
                 // Domain microservice routes (Now mapped below!)
                 .pathMatchers("/trades/**").hasAuthority("TRADE_READ")
                 .pathMatchers("/ledger/**").hasAuthority("LEDGER_READ")
