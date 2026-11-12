@@ -8,22 +8,37 @@ export function AuthProvider({ children }) {
   const existingToken = getAccessToken();
 
   const [accessToken, setAccessToken] = useState(existingToken);
-  const [user, setUser] = useState(parseJwt(existingToken));
+  const [jwtClaims, setJwtClaims] = useState(parseJwt(existingToken));
+  const [userInfo, setUserInfo] = useState(() => {
+    const saved = localStorage.getItem("fintech_user_info");
+    return saved ? JSON.parse(saved) : null;
+  });
 
   const isAuthenticated = Boolean(accessToken);
 
   async function login({ username, password }) {
-    const tokens = await authApi.login({
-      username,
-      password,
+    const responseData = await authApi.login({ username, password });
+
+    // Save tokens to localStorage
+    saveTokens({
+      accessToken: responseData.accessToken,
+      refreshToken: responseData.refreshToken,
     });
 
-    saveTokens(tokens);
+    // Save user info to localStorage
+    const userSummary = {
+      username: responseData.username,
+      email: responseData.email,
+      roles: responseData.roles,
+    };
+    localStorage.setItem("fintech_user_info", JSON.stringify(userSummary));
 
-    setAccessToken(tokens.accessToken);
-    setUser(parseJwt(tokens.accessToken));
+    // Update React state
+    setAccessToken(responseData.accessToken);
+    setJwtClaims(parseJwt(responseData.accessToken));
+    setUserInfo(userSummary);
 
-    return tokens;
+    return responseData;
   }
 
   async function register(payload) {
@@ -32,20 +47,23 @@ export function AuthProvider({ children }) {
 
   function logout() {
     clearTokens();
+    localStorage.removeItem("fintech_user_info");
     setAccessToken(null);
-    setUser(null);
+    setJwtClaims(null);
+    setUserInfo(null);
   }
 
   const value = useMemo(
     () => ({
       accessToken,
-      user,
+      jwtClaims,
+      userInfo,
       isAuthenticated,
       login,
       register,
       logout,
     }),
-    [accessToken, user, isAuthenticated]
+    [accessToken, jwtClaims, userInfo, isAuthenticated],
   );
 
   return <AuthContext.Provider value={value}>

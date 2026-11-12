@@ -55,7 +55,7 @@ export default function Register() {
         firstName: form.firstName,
         lastName: form.lastName,
         password: form.password,
-        role: form.role
+        roles: [form.role],
       };
 
       await register(payload);
