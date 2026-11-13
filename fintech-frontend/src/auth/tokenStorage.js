@@ -34,7 +34,7 @@ export function parseJwt(token) {
       .replace(/_/g, "/")
       .padEnd(base64Url.length + ((4 - (base64Url.length % 4)) % 4), "=");
 
-    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)); // ← fixed
+    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
     const jsonPayload = new TextDecoder().decode(bytes);
 
     return JSON.parse(jsonPayload);
