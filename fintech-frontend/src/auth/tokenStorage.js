@@ -3,24 +3,24 @@ const REFRESH_TOKEN_KEY = "fintech_refresh_token";
 
 export function saveTokens({ accessToken, refreshToken }) {
   if (accessToken) {
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   }
   if (refreshToken) {
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    sessionStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   }
 }
 
 export function getAccessToken() {
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
+  return sessionStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
 export function getRefreshToken() {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+  return sessionStorage.getItem(REFRESH_TOKEN_KEY);
 }
 
 export function clearTokens() {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
 export function parseJwt(token) {

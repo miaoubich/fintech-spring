@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
       email: responseData.email,
       roles: responseData.roles,
     };
-    localStorage.setItem("fintech_user_info", JSON.stringify(userSummary));
+    sessionStorage.setItem("fintech_user_info", JSON.stringify(userSummary));
 
     // Update React state
     setAccessToken(responseData.accessToken);
@@ -46,11 +46,13 @@ export function AuthProvider({ children }) {
   }
 
   function logout() {
+    // 1. Delete tokens from browser storage
     clearTokens();
-    localStorage.removeItem("fintech_user_info");
+    sessionStorage.removeItem("fintech_user_info");
     setAccessToken(null);
     setJwtClaims(null);
     setUserInfo(null);
+    window.location.href = "/login"; // Redirect to login page
   }
 
   const value = useMemo(
