@@ -1,5 +1,6 @@
 package com.miaoubich.auth.service;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 
@@ -61,8 +62,26 @@ public class AuthServiceImpl {
         user.setRoles(roles);
         user.setSynced(false);
 
-        userRepository.save(user);
+        User saved = userRepository.save(user);
         LOG.info("Registered user {} locally — pending Keycloak sync", user.getUsername());
+        
+        try {
+            String keycloakId = keycloakAdminService.syncUserToKeycloak(saved);
+
+            saved.setEnabled(true);
+            saved.setEmailVerified(true);
+            saved.setKeycloakId(keycloakId);
+            saved.setPendingKeycloakPassword(null);
+            saved.setLastSyncedAt(Instant.now());
+            saved.setSynced(true);
+
+            userRepository.save(saved); // DB now matches Keycloak
+            LOG.info("User {} synced to Keycloak ({}) and DB updated", saved.getUsername(), keycloakId);
+            
+        } catch (Exception e) {
+            LOG.error("Keycloak sync failed for {}", saved.getUsername(), e);
+            throw new RuntimeException("Registration failed: Keycloak sync error", e);
+        }
 
         return new AuthResponse(
                 null, null, null, null,

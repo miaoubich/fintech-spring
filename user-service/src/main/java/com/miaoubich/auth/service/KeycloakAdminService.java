@@ -1,6 +1,7 @@
 package com.miaoubich.auth.service;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
+import com.miaoubich.auth.commonmethods.CommonMethods;
 import com.miaoubich.auth.model.User;
 import com.miaoubich.auth.model.UserRole;
 
@@ -313,7 +315,7 @@ public class KeycloakAdminService {
 		return (String) clients.get(0).get("id");
 	}
 
-	private String findKeycloakUserIdByUsername(String username, String token) {
+	String findKeycloakUserIdByUsername(String username, String token) {
 		List<Map<String, Object>> users = restClient
 				.get()
 				.uri(adminUsersEndpoint() + "?username={username}&exact=true", username)
@@ -326,8 +328,32 @@ public class KeycloakAdminService {
 		}
 		return (String) users.get(0).get("id");
 	}
+	
+	 public List<Map<String, Object>> getAllUsersFromKeycloak(String token) {
+			return restClient
+					.get()
+					.uri(adminUsersEndpoint())
+					.header("Authorization", "Bearer " + token)
+					.retrieve()
+					.body(new ParameterizedTypeReference<>() {});
+	}
 
-	private String getAdminToken() {
+	 // Disable a user in Keycloak (set enabled = false)
+	    public void disableKeycloakUser(String keycloakUserId, String token) {
+	        Map<String, Object> update = new HashMap<>();
+	        update.put("enabled", false);
+
+	        restClient
+	                .put()
+	                .uri(adminUsersEndpoint() + "/" + keycloakUserId)
+	                .header("Authorization", "Bearer " + token)
+	                .contentType(MediaType.APPLICATION_JSON)
+	                .body(update)
+	                .retrieve()
+	                .toBodilessEntity();
+	    }
+
+	public String getAdminToken() {
 		if (cachedAdminToken != null && Instant.now().isBefore(adminTokenExpiry.minusSeconds(30))) {
 			return cachedAdminToken;
 		}
@@ -353,6 +379,8 @@ public class KeycloakAdminService {
 
 		return cachedAdminToken;
 	}
+	
+	
 
 	private String tokenEndpoint() {
 		return serverUrl + "/realms/" + realm + "/protocol/openid-connect/token";

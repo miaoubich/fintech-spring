@@ -1,17 +1,15 @@
 package com.miaoubich.auth.scheduler;
 
-import java.time.Instant;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.miaoubich.auth.model.User;
 import com.miaoubich.auth.repository.UserRepository;
-import com.miaoubich.auth.service.KeycloakAdminService;
+import com.miaoubich.auth.service.UserServiceImpl;
 
 @Component
 public class KeycloakSyncScheduler {
@@ -19,38 +17,32 @@ public class KeycloakSyncScheduler {
     private static final Logger LOG = LoggerFactory.getLogger(KeycloakSyncScheduler.class);
 
     private final UserRepository userRepository;
-    private final KeycloakAdminService keycloakAdminService;
+    private final UserServiceImpl userServiceImpl;
 
     public KeycloakSyncScheduler(UserRepository userRepository,
-                                 KeycloakAdminService keycloakAdminService) {
+    							UserServiceImpl userServiceImpl) {
         this.userRepository = userRepository;
-        this.keycloakAdminService = keycloakAdminService;
+        this.userServiceImpl = userServiceImpl;
     }
 
-    @Scheduled(fixedRate = 60_000) // every 1 minute
-    @Transactional
+    @Scheduled(fixedRate = 60_000, // 1 minute
+    		initialDelay = 60_000)
     public void syncUnsyncedUsers() {
-        var unsynced = userRepository.findBySyncedFalse();
-        if (unsynced.isEmpty()) 
-        	return;
+        LOG.info("Checking for unsynced users...");
+
+        List<User> unsynced = userRepository.findAll().stream()
+                .filter(u -> !u.isSynced())
+                .toList();
+
+        if (unsynced.isEmpty()) {
+            LOG.info("No unsynced users found.");
+            return;
+        }
 
         LOG.info("Found {} unsynced user(s) — starting Keycloak sync", unsynced.size());
 
-        for (var user : unsynced) {
-            try {
-                var keycloakId = keycloakAdminService.syncUserToKeycloak(user);
-                user.setKeycloakId(keycloakId);
-                user.setSynced(true);
-                user.setEnabled(true);      
-                user.setEmailVerified(true);
-                user.setPendingKeycloakPassword(null); // wipe plain-text
-                user.setLastSyncedAt(Instant.now());
-                userRepository.save(user);
-                LOG.info("Synced user {} → Keycloak UUID {}", user.getUsername(), keycloakId);
-            } catch (Exception e) {
-                LOG.error("Failed to sync user {}: {}", user.getUsername(), e.getMessage());
-                // No re-throw — continue with next user
-            }
+        for (User user : unsynced) {
+        	userServiceImpl.syncSingleUser(user); // each user in its own transaction
         }
     }
 }

@@ -24,6 +24,11 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
+  data:
+    web:
+      pageable:
+        max-page-size: 100
+
   # Custom Keycloak Configuration for Token Exchange & 1-Minute Admin Sync
   security:
     oauth2:

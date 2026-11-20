@@ -1,0 +1,137 @@
+/* Page Layout */
+.page-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.page-header h2 {
+  margin: 0;
+  color: #1e293b;
+}
+
+/* Button */
+.btn-refresh {
+  padding: 0.5rem 1rem;
+  background-color: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+  margin-right: 0.5rem;
+}
+
+.btn-refresh:hover {
+  background-color: #0369a1;
+}
+
+/* Table */
+.table-responsive {
+  overflow-x: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
+}
+
+.custom-table th {
+  background-color: #0f172a;
+  color: #f8fafc;
+  text-align: left;
+  padding: 0.85rem 1rem;
+}
+
+.custom-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.custom-table tbody tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+/* Utilities & Badges */
+.font-bold {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.text-muted {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-right: 0.35rem;
+}
+
+.badge-active {
+  background-color: #dcfce7;
+  color: #15803d;
+  border-radius: 9999px;
+}
+
+.badge-disabled {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border-radius: 9999px;
+}
+
+.badge-role {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.error-banner {
+  padding: 1rem;
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.btn-reconcile {
+  padding: 0.5rem 1rem;
+  background-color: #d97706;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+  margin-left: 0.5rem;
+}
+
+.btn-reconcile:hover {
+  background-color: #b3670f;
+}
+
+/* ===== Reconciliation Banner ===== */
+.recon-banner {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #e0f2fe;
+  border-radius: 6px;
+  border: 1px solid #0284c7;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}

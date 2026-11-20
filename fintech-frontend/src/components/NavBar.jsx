@@ -5,10 +5,11 @@ import "./NavBar.css";
 // Add new entries here as you build each feature page.
 // `to` must match a <Route> in App.jsx.
 const NAV_ITEMS = [
-    {to: "dashboard", label: "Dashboard", end: true},
-    { to: "/trade",     label: "Trades" },
-    { to: "/ledger",    label: "Ledger" },
-    { to: "/wallet",    label: "Wallet" },
+  { to: "dashboard", label: "Dashboard", end: true },
+  { to: "/users", label: "Users" },
+  { to: "/trade", label: "Trades" },
+  { to: "/ledger", label: "Ledger" },
+  { to: "/wallet", label: "Wallet" },
 ];
 
 export default function NavBar() {

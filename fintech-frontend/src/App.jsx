@@ -4,6 +4,7 @@ import PrivateLayout from "./components/PrivateLayout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import UserList from "./pages/UserList";
 import TradePage from "./pages/TradePage";
 import LedgerPage from "./pages/LedgerPage";
 import WalletPage from "./pages/WalletPage";
@@ -19,6 +20,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<PrivateLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/users" element={<UserList />} />
           <Route path="/trade" element={<TradePage />} />
           <Route path="/ledger" element={<LedgerPage />} />
           <Route path="/wallet" element={<WalletPage />} />
