@@ -55,7 +55,7 @@ export function AuthProvider({ children }) {
     setAccessToken(null);
     setJwtClaims(null);
     setUserInfo(null);
-    navigate("/login", { replace: true }); // <-- replaces Dashboard in history
+    window.location.replace("/login");
   }
 
   const value = useMemo(

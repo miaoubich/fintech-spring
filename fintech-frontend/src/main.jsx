@@ -3,9 +3,9 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { AuthProvider } from "./auth/AuthContext";
-import { installBfcacheGuard } from "./auth/bfcacheGuard";
+import { installAuthGuard } from "./auth/authGuard";
 
-installBfcacheGuard();
+installAuthGuard();
 
 import "./style/styles.css";
 
