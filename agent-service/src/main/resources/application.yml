@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: agent-service
+  main:
+    web-application-type: servlet
+  ai:
+    openai:
+      base-url: https://api.openai.com/v1
+      api-key: ${OPENAI_API_KEY:}          # set this env var
+      chat:
+        options:
+          model: gpt-4o-mini
+          temperature: 0.2
+# If you prefer a local model via Ollama instead of OpenAI, comment above and uncomment below:
+#   ollama:
+#     base-url: http://localhost:11434
+#     chat:
+#       options:
+#         model: llama3
+
+server:
+  port: 8090
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9090/realms/Maradga
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
