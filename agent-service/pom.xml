@@ -9,7 +9,7 @@
 		<version>3.4.2</version>
 		<relativePath />
 	</parent>
-	<groupId>com.miaoubich</groupId>
+	<groupId>com.miaoubich.agent</groupId>
 	<artifactId>agent-service</artifactId>
 	<version>1.0.0</version>
 	<name>agent-service</name>

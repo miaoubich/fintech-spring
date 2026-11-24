@@ -1,0 +1,11 @@
+┌─────────────────┐       ┌──────────────────┐      ┌─────────────────────┐
+│   React UI      │──────>│   API Gateway    │─────>│  agent-service      │
+│ (Chat widget)   │       │(port 8080)       │      │(Spring AI,port 8090)│
+└─────────────────┘       └──────────────────┘      └─────────┬───────────┘
+                                                              │
+                      ┌───────────┬───────────┬───────────────┼───────────────┐
+                      ▼           ▼           ▼               ▼               ▼
+                user-service  trade-service  wallet-service  ledger-service  kafka
+                      │           │           │               │               │
+                      ▼           ▼           │               ▼               ▼
+                 PostgreSQL   PostgreSQL   PostgreSQL     PostgreSQL       (events)
