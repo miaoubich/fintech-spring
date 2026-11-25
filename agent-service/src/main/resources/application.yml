@@ -6,7 +6,7 @@ spring:
   ai:
     openai:
       base-url: https://api.openai.com/v1
-      api-key: ${OPENAI_API_KEY:}          # set this env var
+      api-key: ${OPENAI_API_KEY:}
       chat:
         options:
           model: gpt-4o-mini
@@ -34,6 +34,7 @@ eureka:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:9090/realms/Maradga
+          jwk-set-uri: http://localhost:9090/realms/Maradga/protocol/openid-connect/certs
 
 management:
   tracing:

@@ -31,7 +31,12 @@ spring:
               - "Authorization"
             allowCredentials: false
 
-      routes:        
+      routes:   
+        - id: agent-service
+          uri: lb://agent-service
+          predicates:
+            - Path=/api/v1/agent/**
+     
         - id: user-service
           uri: lb://user-service
           predicates:

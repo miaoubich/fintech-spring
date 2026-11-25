@@ -1,0 +1,59 @@
+ High-Level Architecture Diagram:
+
+                                  [ KEYCLOAK (9090) ]
+                                  (Realm: Maradga)
+                                         ▲
+                                         │ Validates JWT
+                                         │
+[ React Vite (5173) ]                    │
+         │                               │
+    (1)  │ HTTP POST /api/v1/agent/stream
+         │ [Bearer JWT in Authorization Header]
+         ▼
+[ API GATEWAY (8080) ] ──────────────► [ EUREKA SERVER (8761) ]
+    (2)  │  Resolves AGENT-SERVICE
+         ▼
+[ AGENT-SERVICE (8090) ]
+   ├── (3) SecurityConfig: Validates JWT & populates SecurityContextHolder
+   │
+   ├── (4) AgentController:
+   │         • Extracts `userId` and `username` from JWT
+   │         • Injects context into ChatClient prompt
+   │
+   ├── (5) Spring AI (ChatClient):
+   │         • Sends User Prompt + System Prompt + Tool Schemas (JSON) to LLM
+   │         ▼
+   │     [ OPENAI API (gpt-4o-mini) ]
+   │         │
+   │   (6)   │  LLM decides it needs data:
+   │         │     Returns Tool Call Request: "getWallet(userId='...')"
+   │         ▼
+   ├── (7) Spring AI Tool Executor:
+   │         • Intercepts LLM tool call
+   │         • Executes AccountTools.getWallet(userId)
+   │
+   ├── (8) Downstream Clients & Interceptor:
+   │         • RestClient interceptor grabs JWT from SecurityContext
+   │         • Relays `Authorization: Bearer <token>`
+   │         • Resolves Service Name via Eureka
+   │         ▼
+   │     	┌──────────────────┬─────────────────┬─────────────────┐
+   │     	▼                  ▼                 ▼                 ▼
+   │ [WALLET-SERVICE]   [TRADE-SERVICE]   [LEDGER-SERVICE]   [USER-SERVICE]
+   │     	│ (Returns DTO)    │                 │                 │
+   │     	└──────────────────┴─────────────────┴─────────────────┘
+   │
+   ├── (9) Spring AI:
+   │         • Serializes DTO to JSON
+   │         • Sends Tool Result back to OpenAI
+   │         ▼
+   │     [ OPENAI API ]
+   │  (10)   │ Synthesizes final human-friendly answer
+   │         ▼
+   └── (11) AgentController (SSE Flux<String> or JSON)
+         │
+         ▼
+   [ API GATEWAY (8080) ]
+         │
+         ▼ (12)
+[ React Vite (5173) UI ] (Renders streaming chat bubble)
